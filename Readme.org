@@ -1,0 +1,27 @@
+role acl 
+    https://github.com/tensult/role-acl
+    https://github.com/dre-sctg/node-acl-try
+    - [X] perform basic library review
+    - [X] spin up express app super barebone in repo
+    - [ ] how policy work
+    - [X] test basic permissions
+      - [X] anon can get videos
+        #+BEGIN_SRC bash
+        curl -X GET 'localhost:4000/video/123?username=anon&video=frank'
+        #+END_SRC
+    - [X] test custom policies
+      
+      - [X] frank can delete his own videos
+          #+BEGIN_SRC 
+          curl -X DELETE 'localhost:4000/video/123?username=frank&video=franks'
+  {"status":"OK","permission":{"_":{"role":"user","resource":"/video/123","context":{"user":{"name":"frank","role":"user"},"video":{"owner":"frank","type":"news","title":"test of my powers"}},"attributes":["*"]}}}⏎
+  #+END_SRC
+
+      - [X] frank can put on videos he's in among the onwers
+        #+BEGIN_SRC 
+        curl -X PUT 'localhost:4000/video/123?username=frank&video=shared'
+{"status":"OK","permission":{"_":{"role":"user","resource":"/video/123","context":{"user":{"name":"frank","role":"user"},"video":{"owner":"alice","owners":{},"type":"blog","title":"stuff"}},"attributes":["*"]}}}⏎
+        #+END_SRC
+    - [ ] how are policy matched ? (conflict resolutions)
+    - [ ] how to store policies
+    - [X] middleware design

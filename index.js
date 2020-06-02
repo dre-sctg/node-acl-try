@@ -39,6 +39,15 @@ let grantsObject = {
             },
             {
                 resource: '/video/*',
+                action: 'PUT',
+                attributes: ['*'],
+                condition: {
+                            Fn: 'custom:inOwners',
+                            args: { resource: 'video' }
+                        }
+            },
+            {
+                resource: '/video/*',
                 action: 'DELETE',
                 attributes: ['*'],
                 condition: {
@@ -48,68 +57,48 @@ let grantsObject = {
             },
         ]
     },
-    "sports/editor": {
+    "anon": {
         grants: [
             {
-                resource: 'article',
-                action: '*',
+                resource: '/video/*',
+                action: 'GET',
                 attributes: ["*"],
-                condition: {
-                    Fn: 'EQUALS',
-                    args: {
-                        'category': 'sports'
-                    }
-                }
             }   
         ] 
     },
-    "sports/writer": {
-        grants: [
-            {
-                resource: 'article',
-                action: ['create', 'update'],
-                attributes: ["*", "!status"],
-                condition: {
-                    Fn: 'EQUALS',
-                    args: {
-                        'category': 'sports'
-                    }
-                }
-            }   
-        ] 
-    },
-    "custom/writer":{
-        grants: [
-            {
-                role: 'editor/news',
-                resource: 'article',
-                action: 'approve',
-                attributes: ['*'],
-                // Mix core with custom conditions
-                condition: {
-                    Fn: 'AND',
-                    args: [
-                        {
-                            Fn: 'custom:categoryMatcher',
-                            args: { type: 'news' }
-                        },
-                        {
-                            Fn: 'custom:isResourceOwner',
-                            args: { resource: 'article' }
-                        }
-                    ]
-                }
-            },
-        ]
-    }
+    // "sports/writer": {
+    //     grants: [
+    //         {
+    //             resource: 'article',
+    //             action: ['create', 'update'],
+    //             attributes: ["*", "!status"],
+    //             condition: {
+    //                 Fn: 'EQUALS',
+    //                 args: {
+    //                     'category': 'sports'
+    //                 }
+    //             }
+    //         }   
+    //     ] 
+    // },
 };
 
 const customConditions={
     myConditions: {
         categoryMatcher: (context, { type } = {}) => {
-            // A naive use of the JSON path util
-            // Keep in mind it comes with performance penalties
-            return type && getValueByPath(context, '$.category.type') === type;
+            return type && context.video.type === type;
+        },
+        inOwners : (context, {resource})=>{
+            if (!resource) {
+                return false;
+            }
+            if (! context[resource]){
+                return false;
+            }
+            if (! context[resource].owners) {
+                return false;
+            }
+            return context[resource].owners.has(context.user.name)
         },
         isResourceOwner: (context, { resource } = {}) => {
             console.log('custom condition: context: ', context,'resource', resource)
@@ -174,15 +163,26 @@ const videos = {
         type:'blog',
         title: 'stuff'
     },
-    default:{}
+    shared: {
+        owner:'alice',
+        owners: new Set(['alice','frank','bob']),
+        type:'blog',
+        title: 'stuff'
+    },
+    default:{
+        owner:'mazinga',
+        owners:new Set(['mazinga']),
+        type: 'news',
+        title: "you don't mess with mazinga z"
+    }
 }
 
 
 
 // set userinfo
 app.use((req, res, next) => {
-  res.locals.user = users[req.query.username||'default']; 
-  res.locals.video = videos[req.query.video||'default']
+  res.locals.user = users[req.query.username||'default']|| users.default; 
+  res.locals.video = videos[req.query.video||'default']|| videos.default;
   console.log('res.locals:', res.locals) // group/policy lookup
   console.log(req.path, req.method);
   next();
