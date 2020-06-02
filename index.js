@@ -24,7 +24,18 @@ let grantsObject = {
     user: {
         grants: [
             {
+                resource: ['/video','/kiosk','/otherthing'], 
+                action: 'GET', 
+                attributes: ['*']
+            },
+            {
                 resource: '/video', action: 'GET', attributes: ['*']
+            },
+            {
+                resource: '/conflict', action: '*', attributes: ['*']
+            },
+            {
+                resource: '/conflict', action: '!GET', attributes: ['*']
             },
             {
                 resource: '/video/*', 
@@ -57,7 +68,7 @@ let grantsObject = {
             },
         ]
     },
-    "anon": {
+    anon: {
         grants: [
             {
                 resource: '/video/*',
@@ -136,8 +147,13 @@ const users={
     },
     jerry:{
         name: 'jerry',
-        role: 'custom/writer'
+        role: 'bestbuy/manager'
     },
+    johnny:{
+        name: 'johnny',
+        role: 'bestbuy/u-johnny'
+    },
+
     default:{
         name: 'anon',
         role: 'anon'

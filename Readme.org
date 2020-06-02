@@ -7,7 +7,7 @@ role acl
     - [X] test basic permissions
       - [X] anon can get videos
         #+BEGIN_SRC bash
-        curl -X GET 'localhost:4000/video/123?username=anon&video=frank'
+        curl -X GET 'localhost:4000/video/123?username=anon&video=franks'
         #+END_SRC
     - [X] test custom policies
       
