@@ -38,12 +38,12 @@ let grantsObject = {
                 attributes: ['*']
             },
             {
-                resource: 'video/*',
+                resource: '/video/*',
                 action: 'DELETE',
                 attributes: ['*'],
                 condition: {
                             Fn: 'custom:isResourceOwner',
-                            args: { resource: 'article' }
+                            args: { resource: 'video' }
                         }
             },
         ]
@@ -116,7 +116,7 @@ const customConditions={
             if (!resource) {
                 return false;
             }
-            return getValueByPath(context, `$.${resource}.owner`) === getValueByPath(context, '$.user.name');
+            return context.user.name === context[resource].owner
         },
     }
 }
@@ -141,6 +141,10 @@ const users={
         name: 'frank',
         role: 'user'
     },
+    charlie:{
+        name: 'charlie',
+        role: 'user'
+    },
     jerry:{
         name: 'jerry',
         role: 'custom/writer'
@@ -154,15 +158,21 @@ const users={
 const resourceTypes = {
     article:{
         type: 'article',
+        owner: 'frank'
     },
     default:{}
 }
 
 const videos = {
-    123: {
+    franks: {
         owner:'frank',
         type:'news',
         title: 'test of my powers'
+    },
+    123: {
+        owner:'alice',
+        type:'blog',
+        title: 'stuff'
     },
     default:{}
 }
@@ -172,7 +182,7 @@ const videos = {
 // set userinfo
 app.use((req, res, next) => {
   res.locals.user = users[req.query.username||'default']; 
-  res.locals.resource = resourceTypes[req.query.rtype||'default']
+  res.locals.video = videos[req.query.video||'default']
   console.log('res.locals:', res.locals) // group/policy lookup
   console.log(req.path, req.method);
   next();
